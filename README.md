@@ -1,0 +1,1 @@
+# Chinese calligraphy generation model
