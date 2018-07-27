@@ -127,7 +127,7 @@ class Font2FontAutoEncoder(object):
             output = tf.nn.sigmoid(d8) # (0, 1)
             return output
 
-    def generator(self, images, is_training, reuse=False):
+    def network(self, images, is_training, reuse=False):
         """
 
         :param images:
@@ -154,7 +154,7 @@ class Font2FontAutoEncoder(object):
         real_A = real_data[:, :, :, :self.input_filters]
 
         # fake B
-        fake_B, encoded_real_A = self.generator(real_A, is_training=is_training)
+        fake_B, encoded_real_A = self.network(real_A, is_training=is_training)
 
         # L1 loss
         l1_loss = self.L1_penalty * tf.reduce_mean(tf.abs(fake_B - real_B))
@@ -265,7 +265,7 @@ class Font2FontAutoEncoder(object):
         """
         input_handle, loss_handle, eval_handle, summary_handle = self.retrieve_handles()
 
-        fake_images, real_images, l1_loss = self.sess.run([eval_handle.generator,
+        fake_images, real_images, l1_loss = self.sess.run([eval_handle.network,
                                                            eval_handle.target,
                                                            loss_handle.l1_loss],
                                                            feed_dict={
