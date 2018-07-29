@@ -18,18 +18,14 @@ SummaryHandle = namedtuple("SummaryHandle", ["g_merged"])
 
 class Font2FontAutoEncoder(object):
     def __init__(self, experiment_dir=None, experiment_id=0, batch_size=16, input_width=256, output_width=256,
-                 generator_dim=64, discriminator_dim=64, L1_penalty=100.0, Lconst_penalty=15.0, Ltv_penalty=0.0,
-                 input_filters=1, output_filters=1):
+                 network_dim=64, L1_penalty=100.0, input_filters=1, output_filters=1):
         self.experiment_dir = experiment_dir
         self.experiment_id = experiment_id
         self.batch_size = batch_size
         self.input_width = input_width
         self.output_width = output_width
-        self.generator_dim = generator_dim
-        self.discriminator_dim = discriminator_dim
+        self.network_dim = network_dim
         self.L1_penalty = L1_penalty
-        self.Lconst_penalty = Lconst_penalty
-        self.Ltv_penalty = Ltv_penalty
         self.input_filters = input_filters
         self.output_filters = output_filters
 
@@ -55,7 +51,7 @@ class Font2FontAutoEncoder(object):
 
     def encoder(self, images, is_training, reuse=False):
         """
-
+        Encoder network
         :param images:
         :param is_training:
         :param reuse:
@@ -74,21 +70,21 @@ class Font2FontAutoEncoder(object):
                 encode_layers["e%d" % layer] = enc
                 return enc
 
-            e1 = conv2d(images, self.generator_dim, scope="g_e1_env")
+            e1 = conv2d(images, self.network_dim, scope="g_e1_env")
             encode_layers["e1"] = e1
-            e2 = encode_layer(e1, self.generator_dim * 2, 2)
-            e3 = encode_layer(e2, self.generator_dim * 4, 3)
-            e4 = encode_layer(e3, self.generator_dim * 8, 4)
-            e5 = encode_layer(e4, self.generator_dim * 8, 5)
-            e6 = encode_layer(e5, self.generator_dim * 8, 6)
-            e7 = encode_layer(e6, self.generator_dim * 8, 7)
-            e8 = encode_layer(e7, self.generator_dim * 8, 8)
+            e2 = encode_layer(e1, self.network_dim * 2, 2)
+            e3 = encode_layer(e2, self.network_dim * 4, 3)
+            e4 = encode_layer(e3, self.network_dim * 8, 4)
+            e5 = encode_layer(e4, self.network_dim * 8, 5)
+            e6 = encode_layer(e5, self.network_dim * 8, 6)
+            e7 = encode_layer(e6, self.network_dim * 8, 7)
+            e8 = encode_layer(e7, self.network_dim * 8, 8)
 
             return e8, encode_layers
 
     def decoder(self, encoded, encoding_layers, is_training, reuse=False):
         """
-
+        Decoder network
         :param encoded:
         :param encoding_layers:
         :param is_training:
@@ -114,14 +110,14 @@ class Font2FontAutoEncoder(object):
                 if do_concat:
                     dec = tf.concat([dec, enc_layer], 3)
                 return dec
-            d1 = decode_layer(encoded, s128, self.generator_dim * 8, layer=1, enc_layer=encoding_layers["e7"],
+            d1 = decode_layer(encoded, s128, self.network_dim * 8, layer=1, enc_layer=encoding_layers["e7"],
                               dropout=True)
-            d2 = decode_layer(d1, s64, self.generator_dim * 8, layer=2, enc_layer=encoding_layers["e6"], dropout=True)
-            d3 = decode_layer(d2, s32, self.generator_dim * 8, layer=3, enc_layer=encoding_layers["e5"], dropout=True)
-            d4 = decode_layer(d3, s16, self.generator_dim * 8, layer=4, enc_layer=encoding_layers["e4"])
-            d5 = decode_layer(d4, s8, self.generator_dim * 4, layer=5, enc_layer=encoding_layers["e3"])
-            d6 = decode_layer(d5, s4, self.generator_dim * 2, layer=6, enc_layer=encoding_layers["e2"])
-            d7 = decode_layer(d6, s2, self.generator_dim, layer=7, enc_layer=encoding_layers["e1"])
+            d2 = decode_layer(d1, s64, self.network_dim * 8, layer=2, enc_layer=encoding_layers["e6"], dropout=True)
+            d3 = decode_layer(d2, s32, self.network_dim * 8, layer=3, enc_layer=encoding_layers["e5"], dropout=True)
+            d4 = decode_layer(d3, s16, self.network_dim * 8, layer=4, enc_layer=encoding_layers["e4"])
+            d5 = decode_layer(d4, s8, self.network_dim * 4, layer=5, enc_layer=encoding_layers["e3"])
+            d6 = decode_layer(d5, s4, self.network_dim * 2, layer=6, enc_layer=encoding_layers["e2"])
+            d7 = decode_layer(d6, s2, self.network_dim, layer=7, enc_layer=encoding_layers["e1"])
             d8 = decode_layer(d7, s, self.output_filters, layer=8, enc_layer=None, do_concat=False)
 
             output = tf.nn.sigmoid(d8) # (0, 1)
@@ -129,7 +125,7 @@ class Font2FontAutoEncoder(object):
 
     def network(self, images, is_training, reuse=False):
         """
-
+        Network architecture.
         :param images:
         :param is_training:
         :param reuse:
@@ -141,7 +137,7 @@ class Font2FontAutoEncoder(object):
 
     def build_model(self, is_training=True):
         """
-
+        Build model of autoencoder.
         :param is_training:
         :return:
         """
@@ -177,7 +173,7 @@ class Font2FontAutoEncoder(object):
 
     def register_session(self, sess):
         """
-
+        Register tf session.
         :param sess:
         :return:
         """
@@ -185,7 +181,7 @@ class Font2FontAutoEncoder(object):
 
     def retrieve_trainable_vars(self, freeze_encoder=False):
         """
-
+        Retrieve trainale vars.
         :param freeze_encoder:
         :return:
         """
@@ -265,8 +261,7 @@ class Font2FontAutoEncoder(object):
         """
         input_handle, loss_handle, eval_handle, summary_handle = self.retrieve_handles()
 
-        fake_images, real_images, l1_loss = self.sess.run([eval_handle.network,
-                                                           eval_handle.target,
+        fake_images, real_images, l1_loss = self.sess.run([eval_handle.network,  eval_handle.target,
                                                            loss_handle.l1_loss],
                                                            feed_dict={
                                                                 input_handle.real_data: input_images

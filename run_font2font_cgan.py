@@ -17,7 +17,8 @@ def train_model():
     with tf.Session(config=config) as sess:
         model = Font2FontCGAN(args.experiment_dir, batch_size=args.batch_size, experiment_id=args.experiment_id,
                           input_width=args.image_size, output_width=args.image_size, L1_penalty=args.L1_penalty,
-                          Ltv_penalty=args.Ltv_penalty)
+                          Ltv_penalty=args.Ltv_penalty, generator_dim=args.generator_dim,
+                              discriminator_dim=args.discriminator_dim)
         model.register_session(sess)
         model.build_model(is_training=True)
 
@@ -43,11 +44,14 @@ parser.add_argument('--experiment_id', dest='experiment_id', type=int, default=0
                     help='sequence id for the experiments you prepare to run')
 parser.add_argument('--image_size', dest='image_size', type=int, default=256,
                     help="size of your input and output image")
+parser.add_argument('--generator_dim', dest='generator_dim', type=int, default=64,
+                    help="generator dim number")
+parser.add_argument('--discriminator_dim', dest='discriminator_dim', type=int, default=64,
+                    help="discriminator dim number")
 parser.add_argument('--L1_penalty', dest='L1_penalty', type=float, default=100.0, help='weight for L1 loss')
 parser.add_argument('--Ltv_penalty', dest='Ltv_penalty', type=float, default=0.0, help='weight for tv loss')
 parser.add_argument('--epoch', dest='epoch', type=int, default=100, help='number of epoch')
 parser.add_argument('--batch_size', dest='batch_size', type=int, default=16, help='number of examples in batch')
-parser.add_argument('--lr', dest='lr', type=float, default=0.001, help='initial learning rate for adam')
 parser.add_argument('--schedule', dest='schedule', type=int, default=10, help='number of epochs to half learning rate')
 parser.add_argument('--resume', dest='resume', type=int, default=1, help='resume from previous training')
 parser.add_argument('--freeze_encoder', dest='freeze_encoder', type=int, default=0,
