@@ -4,6 +4,7 @@ FROM tensorflow/tensorflow:latest-devel-gpu-py3
 # ADD . /develop/ChineseCalligraphyGenerationModel
 # ADD ../experiments/data /data
 
+RUN pip install imageio
 
 
 # run bash
