@@ -12,7 +12,7 @@ from utils.utils import merge, save_concat_images, save_image
 
 LossHandle = namedtuple("LossHandle", ["l1_loss"])
 InputHandle = namedtuple("InputHandle", ["real_data"])
-EvalHandle = namedtuple("EvalHandle", ["encoder", "generator", "target", "source"])
+EvalHandle = namedtuple("EvalHandle", ["encoder", "network", "target", "source"])
 SummaryHandle = namedtuple("SummaryHandle", ["g_merged"])
 
 
@@ -162,7 +162,7 @@ class Font2FontAutoEncoder(object):
         # expose useful nodes in the graph as handles globally
         input_handle = InputHandle(real_data=real_data)
         loss_handle = LossHandle(l1_loss=l1_loss)
-        eval_handle = EvalHandle(encoder=encoded_real_A, generator=fake_B, target=real_B, source=real_A)
+        eval_handle = EvalHandle(encoder=encoded_real_A, network=fake_B, target=real_B, source=real_A)
         summary_handle = SummaryHandle(g_merged=g_merged_summary)
 
         # those operations will be shared make them visiual globally
