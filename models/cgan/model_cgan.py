@@ -337,7 +337,7 @@ class Font2FontCGAN(object):
         input_handle, loss_handle, eval_handle, summary_handle = self.retrieve_handles()
 
         fake_images, real_images, \
-        d_loss, g_loss, l1_loss, tv_loss = self.sess.run([eval_handle.network,
+        d_loss, g_loss, l1_loss, tv_loss = self.sess.run([eval_handle.generator,
                                                           eval_handle.target,
                                                           loss_handle.d_loss,
                                                           loss_handle.g_loss,
