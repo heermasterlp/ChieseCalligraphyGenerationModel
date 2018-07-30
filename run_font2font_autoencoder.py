@@ -13,7 +13,7 @@ def train_model():
     """
     print("======== Begin to train auto-encoder model =========")
     start_time = datetime.now()
-    print("Begin time: {}".format(start_time.isoformat(timespec='seconds')))
+    print("Begin time: {}".format(start_time))
     print("Args: {}".format(args))
 
     config = tf.ConfigProto()
@@ -31,7 +31,7 @@ def train_model():
                     checkpoint_steps=args.checkpoint_steps)
 
     end_time = datetime.now()
-    print("End time: {}".format(end_time.isoformat(timespec='second')))
+    print("End time: {}".format(end_time))
     duration = end_time - start_time
     print("Duration hours: {}".format(duration.total_seconds() / 3600.))
 

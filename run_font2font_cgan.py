@@ -9,7 +9,7 @@ from models.cgan.model_cgan import Font2FontCGAN
 def train_model():
     print("train model")
     start = datetime.now()
-    print("Begin time: {}".format(start.isoformat(timespec='seconds')))
+    print("Begin time: {}".format(start))
     print("Args:{}".format(args))
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
