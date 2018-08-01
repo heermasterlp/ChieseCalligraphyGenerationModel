@@ -153,7 +153,7 @@ class Font2FontAutoEncoder(object):
         fake_B, fake_B_logits = self.network(real_A, is_training=is_training)
 
         # L1 loss
-        l1_loss = self.L1_penalty * tf.reduce_mean(tf.abs(fake_B - real_B))
+        l1_loss = self.Loss_penalty * tf.reduce_mean(tf.abs(fake_B - real_B))
 
         # reconstruct loss
         # ce_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=real_B, logits=fake_B_logits))
