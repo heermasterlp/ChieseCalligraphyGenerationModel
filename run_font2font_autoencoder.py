@@ -22,8 +22,8 @@ def train_model():
     with tf.Session(config=config) as sess:
         print("------- Init model ------")
         model = Font2FontAutoEncoder(args.experiment_dir, batch_size=args.batch_size, experiment_id=args.experiment_id,
-                                     input_width=args.image_size, output_width=args.image_size, L1_penalty=args.L1_penalty,
-                                     network_dim=args.network_dim)
+                                     input_width=args.image_size, output_width=args.image_size,
+                                     Loss_penalty=args.Loss_penalty, network_dim=args.network_dim)
         model.register_session(sess)
         model.build_model(is_training=True)
         model.train(lr=args.lr, epoch=args.epoch, resume=args.resume, schedule=args.schedule,
@@ -56,7 +56,7 @@ parser.add_argument('--image_size', dest='image_size', type=int, default=256,
                     help="size of your input and output image")
 parser.add_argument('--network_dim', dest='network_dim', type=int, default=64,
                     help="network dim number")
-parser.add_argument('--L1_penalty', dest='L1_penalty', type=float, default=100.0, help='weight for L1 loss')
+parser.add_argument('--Loss_penalty', dest='Loss_penalty', type=float, default=100.0, help='weight for  loss')
 parser.add_argument('--epoch', dest='epoch', type=int, default=100, help='number of epoch')
 parser.add_argument('--batch_size', dest='batch_size', type=int, default=16, help='number of examples in batch')
 parser.add_argument('--lr', dest='lr', type=float, default=0.001, help='initial learning rate for adam')

@@ -48,6 +48,8 @@ def char_dataset_generate(charset, trainset_num, valset_num, testset_num, shuffl
     # shuffle
     if shuffle:
         np.random.shuffle(charset)
+        np.random.shuffle(charset)
+        np.random.shuffle(charset)
 
     trainset = charset[:trainset_num]
     valset = charset[trainset_num: trainset_num + valset_num]
@@ -81,23 +83,38 @@ def pickle_dataset(dataset, dataset_dir, font, image_mode, canvas_size, x_offset
     elif flag == "test":
         dataset_path += "/test.obj"
 
-    with open(dataset_path, "wb") as f:
-        for i in range(len(dataset)):
-            char = dataset[i]
-            # generate image of char
-            default_color = 255
-            if image_mode == "RGB":
-                default_color = (255, 255, 255)
+    if os.path.exists(os.path.join(dataset_dir, 'images')):
+        dirs = os.listdir(os.path.join(dataset_dir, 'images'))
+        for f in dirs:
+            if 'jpg' in f:
+                os.remove(os.path.join(dataset_dir, 'images', f))
+    else:
+        os.makedirs(os.path.join(dataset_dir, 'images'))
 
-            img = Image.new(image_mode, (canvas_size, canvas_size), default_color)
-            draw = ImageDraw.Draw(img)
-            draw.text((x_offset, y_offset), char, 0, font=font)
+    for i in range(len(dataset)):
+        print(i)
+        char = dataset[i]
+        # generate image of char
+        default_color = 255
+        if image_mode == "RGB":
+            default_color = (255, 255, 255)
 
-            if img is None:
-                print("{}-th image is None!")
+        img = Image.new(image_mode, (canvas_size, canvas_size), default_color)
+        draw = ImageDraw.Draw(img)
+        draw.text((x_offset, y_offset), char, 0, font=font)
+        img.save((dataset_dir + "/images/" + "%04d.jpg") % (i))
+
+    dirs = os.listdir(os.path.join(dataset_dir, 'images'))
+
+    with open(dataset_path, "wb") as fd:
+
+        for f in dirs:
+            if 'jpg' not in f:
                 continue
-            # pickle to obj file
-            pickle.dump(img, f)
+            # read image file
+            with open(os.path.join(dataset_dir, "images", f), "rb") as f:
+                img_bytes = f.read()
+                pickle.dump(img_bytes, fd)
 
 
 parser = argparse.ArgumentParser(description='Dataset generation')

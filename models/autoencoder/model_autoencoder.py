@@ -10,22 +10,22 @@ from utils.ops import conv2d, deconv2d, lrelu, fc, batch_norm
 from models.autoencoder.dataset import TrainDataProvider, InjectDataProvider
 from utils.utils import merge, save_concat_images, save_image
 
-LossHandle = namedtuple("LossHandle", ["l1_loss"])
+LossHandle = namedtuple("LossHandle", ["loss"])
 InputHandle = namedtuple("InputHandle", ["real_data"])
-EvalHandle = namedtuple("EvalHandle", ["encoder", "network", "target", "source"])
+EvalHandle = namedtuple("EvalHandle", ["network", "target", "source"])
 SummaryHandle = namedtuple("SummaryHandle", ["g_merged"])
 
 
 class Font2FontAutoEncoder(object):
     def __init__(self, experiment_dir=None, experiment_id=0, batch_size=16, input_width=256, output_width=256,
-                 network_dim=64, L1_penalty=100.0, input_filters=1, output_filters=1):
+                 network_dim=64, Loss_penalty=100.0, input_filters=1, output_filters=1):
         self.experiment_dir = experiment_dir
         self.experiment_id = experiment_id
         self.batch_size = batch_size
         self.input_width = input_width
         self.output_width = output_width
         self.network_dim = network_dim
-        self.L1_penalty = L1_penalty
+        self.Loss_penalty = Loss_penalty
         self.input_filters = input_filters
         self.output_filters = output_filters
 
@@ -121,7 +121,7 @@ class Font2FontAutoEncoder(object):
             d8 = decode_layer(d7, s, self.output_filters, layer=8, enc_layer=None, do_concat=False)
 
             output = tf.nn.sigmoid(d8) # (0, 1)
-            return output
+            return output, d8
 
     def network(self, images, is_training, reuse=False):
         """
@@ -132,8 +132,8 @@ class Font2FontAutoEncoder(object):
         :return:
         """
         e8, enc_layers = self.encoder(images, is_training=is_training, reuse=reuse)
-        output = self.decoder(e8, enc_layers, is_training=is_training, reuse=reuse)
-        return output, e8
+        output, d8 = self.decoder(e8, enc_layers, is_training=is_training, reuse=reuse)
+        return output, d8
 
     def build_model(self, is_training=True):
         """
@@ -150,19 +150,25 @@ class Font2FontAutoEncoder(object):
         real_A = real_data[:, :, :, :self.input_filters]
 
         # fake B
-        fake_B, encoded_real_A = self.network(real_A, is_training=is_training)
+        fake_B, fake_B_logits = self.network(real_A, is_training=is_training)
 
         # L1 loss
-        l1_loss = self.L1_penalty * tf.reduce_mean(tf.abs(fake_B - real_B))
+        # l1_loss = self.L1_penalty * tf.reduce_mean(tf.abs(fake_B - real_B))
+
+        # reconstruct loss
+        ce_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=real_B, logits=fake_B_logits))
+
+        # loss
+        loss = ce_loss
 
         # summaries
-        l1_loss_summary = tf.summary.scalar("l1_loss", l1_loss)
-        g_merged_summary = tf.summary.merge([l1_loss_summary])
+        loss_summary = tf.summary.scalar("loss", loss)
+        g_merged_summary = tf.summary.merge([loss_summary])
 
         # expose useful nodes in the graph as handles globally
         input_handle = InputHandle(real_data=real_data)
-        loss_handle = LossHandle(l1_loss=l1_loss)
-        eval_handle = EvalHandle(encoder=encoded_real_A, network=fake_B, target=real_B, source=real_A)
+        loss_handle = LossHandle(loss=loss)
+        eval_handle = EvalHandle(network=fake_B, target=real_B, source=real_A)
         summary_handle = SummaryHandle(g_merged=g_merged_summary)
 
         # those operations will be shared make them visiual globally
@@ -261,12 +267,12 @@ class Font2FontAutoEncoder(object):
         """
         input_handle, loss_handle, eval_handle, summary_handle = self.retrieve_handles()
 
-        fake_images, real_images, l1_loss = self.sess.run([eval_handle.network,  eval_handle.target,
-                                                           loss_handle.l1_loss],
+        fake_images, real_images, loss = self.sess.run([eval_handle.network,  eval_handle.target,
+                                                           loss_handle.loss],
                                                            feed_dict={
                                                                 input_handle.real_data: input_images
                                                             })
-        return fake_images, real_images, l1_loss
+        return fake_images, real_images, loss
 
     def validate_model(self, images, epoch, step):
         """
@@ -276,8 +282,8 @@ class Font2FontAutoEncoder(object):
         :param step:
         :return:
         """
-        fake_images, real_images,l1_loss = self.generate_fake_samples(images)
-        print("Sample: l1_loss: %.5f " % (l1_loss))
+        fake_images, real_images,loss = self.generate_fake_samples(images)
+        print("Sample: l1_loss: %.5f " % (loss))
 
         merged_fake_images = merge(fake_images, [self.batch_size, 1])
         merged_real_images = merge(real_images, [self.batch_size, 1])
@@ -367,7 +373,7 @@ class Font2FontAutoEncoder(object):
 
         learning_rate = tf.placeholder(tf.float32, name="learning_rate")
 
-        g_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=0.5).minimize(loss_handle.l1_loss, var_list=g_vars)
+        g_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=0.5).minimize(loss_handle.loss, var_list=g_vars)
 
         saver = tf.train.Saver(max_to_keep=100)
         summary_writer = tf.summary.FileWriter(self.log_dir, self.sess.graph)
@@ -397,15 +403,15 @@ class Font2FontAutoEncoder(object):
                 counter += 1
                 batch_images = batch
 
-                _, l1_loss, g_summary = self.sess.run([g_optimizer, loss_handle.l1_loss,  summary_handle.g_merged],
+                _, loss, g_summary = self.sess.run([g_optimizer, loss_handle.loss,  summary_handle.g_merged],
                                                         feed_dict={
                                                             real_data: batch_images,
                                                             learning_rate: current_lr
                                                         })
                 passed_time = time.time() - start_time
 
-                log_format = "Epoch: [%2d], [%4d/%4d] time: %4.4f, l1_loss: %.5f"
-                print(log_format % (ei, bid, total_batches, passed_time, l1_loss))
+                log_format = "Epoch: [%2d], [%4d/%4d] time: %4.4f, loss: %.5f"
+                print(log_format % (ei, bid, total_batches, passed_time, loss))
                 summary_writer.add_summary(g_summary, counter)
 
             # validation in each epoch
