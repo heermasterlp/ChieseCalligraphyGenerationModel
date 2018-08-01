@@ -7,7 +7,6 @@ from collections import namedtuple
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
-import collections
 import pickle
 
 """

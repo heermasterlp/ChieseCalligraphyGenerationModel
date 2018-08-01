@@ -370,6 +370,7 @@ class Font2FontAutoEncoder(object):
         data_provider = TrainDataProvider(self.data_dir)
         total_batches = data_provider.compute_total_batch_num(self.batch_size)
         val_batch_iter = data_provider.get_val(size=self.batch_size)
+        train_sample = data_provider.get_train_sample(size=self.batch_size)
 
         learning_rate = tf.placeholder(tf.float32, name="learning_rate")
 
@@ -414,8 +415,9 @@ class Font2FontAutoEncoder(object):
                 print(log_format % (ei, bid, total_batches, passed_time, loss))
                 summary_writer.add_summary(g_summary, counter)
 
-            # validation in each epoch
-            self.validate_model(val_batch_iter, ei, counter)
+            # validation in each epoch used the train samples
+            # self.validate_model(val_batch_iter, ei, counter)
+            self.validate_model(train_sample, ei, counter)
 
             # save checkpoint in each 50 epoch
             if (ei + 1) % 50 == 0:
