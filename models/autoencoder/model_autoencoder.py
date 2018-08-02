@@ -9,6 +9,9 @@ from collections import namedtuple
 from utils.ops import conv2d, deconv2d, lrelu, fc, batch_norm
 from models.autoencoder.dataset import TrainDataProvider, InjectDataProvider
 from utils.utils import merge, save_concat_images, save_image, scale_back
+from models.autoencoder.layers import conv2d, deconv2d, maxpool2d, upsample, dropout, fullyConnected
+
+
 
 LossHandle = namedtuple("LossHandle", ["loss"])
 InputHandle = namedtuple("InputHandle", ["real_data"])
@@ -63,9 +66,11 @@ class Font2FontAutoEncoder(object):
 
             encode_layers = dict()
 
-            def encode_layer(x, output_filters, layer):
-                act = lrelu(x)
-                conv = conv2d(act, output_filters=output_filters, scope="g_e%d_conv" % layer)
+            def encode_layer(x, output_filters, layer, keep_rate=1.0):
+                # act = lrelu(x)
+                act = tf.nn.relu(x)
+                drop = tf.nn.dropout(act, keep_rate)
+                conv = conv2d(drop, output_filters=output_filters, scope="g_e%d_conv" % layer)
                 enc = batch_norm(conv, is_training, scope="g_e%d_bn" % layer)
                 encode_layers["e%d" % layer] = enc
                 return enc
@@ -154,13 +159,16 @@ class Font2FontAutoEncoder(object):
         fake_B, fake_B_logits = self.network(real_A, is_training=is_training)
 
         # L1 loss
-        l1_loss = self.Loss_penalty * tf.reduce_mean(tf.abs(fake_B - real_B))
+        l1_loss = tf.reduce_mean(tf.abs(tf.subtract(fake_B, real_B)))
+
+        # l2 loss
+        l2_loss = tf.reduce_mean(tf.square(tf.subtract(fake_B, real_B)))
 
         # reconstruct loss
         # ce_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=real_B, logits=fake_B_logits))
 
         # loss
-        loss = l1_loss
+        loss = l2_loss
 
         # summaries
         loss_summary = tf.summary.scalar("loss", loss)
