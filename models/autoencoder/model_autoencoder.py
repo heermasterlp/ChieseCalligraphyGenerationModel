@@ -9,7 +9,6 @@ from collections import namedtuple
 from utils.ops import conv2d, deconv2d, lrelu, fc, batch_norm
 from models.autoencoder.dataset import TrainDataProvider, InjectDataProvider
 from utils.utils import merge, save_concat_images, save_image, scale_back
-from models.autoencoder.layers import conv2d, deconv2d, maxpool2d, upsample, dropout, fullyConnected
 
 
 
