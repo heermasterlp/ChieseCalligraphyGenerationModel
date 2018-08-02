@@ -70,7 +70,8 @@ def process(img, augment):
             img_A = shift_and_resize_image(img_A, shift_x, shift_y, nw, nh)
 
         # scale ()
-        img_A = img_A / 255.
+        # img_A = img_A / 255.
+        img_A = normalize_image(img_A)  # (-1, 1)
 
         # 2D to 3D matrix
         img_A = np.reshape(img_A, [img_A.shape[0], img_A.shape[1], 1])

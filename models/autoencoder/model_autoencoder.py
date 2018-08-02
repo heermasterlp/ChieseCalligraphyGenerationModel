@@ -8,7 +8,7 @@ from collections import namedtuple
 
 from utils.ops import conv2d, deconv2d, lrelu, fc, batch_norm
 from models.autoencoder.dataset import TrainDataProvider, InjectDataProvider
-from utils.utils import merge, save_concat_images, save_image
+from utils.utils import merge, save_concat_images, save_image, scale_back
 
 LossHandle = namedtuple("LossHandle", ["loss"])
 InputHandle = namedtuple("InputHandle", ["real_data"])
@@ -120,7 +120,8 @@ class Font2FontAutoEncoder(object):
             d7 = decode_layer(d6, s2, self.network_dim, layer=7, enc_layer=encoding_layers["e1"])
             d8 = decode_layer(d7, s, self.output_filters, layer=8, enc_layer=None, do_concat=False)
 
-            output = tf.nn.sigmoid(d8) # (0, 1)
+            # output = tf.nn.sigmoid(d8) # (0, 1)
+            output = tf.nn.tanh(d8) # (-1, 1)
             return output, d8
 
     def network(self, images, is_training, reuse=False):
@@ -285,8 +286,8 @@ class Font2FontAutoEncoder(object):
         fake_images, real_images,loss = self.generate_fake_samples(images)
         print("Sample: l1_loss: %.5f " % (loss))
 
-        merged_fake_images = merge(fake_images, [self.batch_size, 1])
-        merged_real_images = merge(real_images, [self.batch_size, 1])
+        merged_fake_images = merge(scale_back(fake_images), [self.batch_size, 1])
+        merged_real_images = merge(scale_back(real_images), [self.batch_size, 1])
         merged_pair = np.concatenate([merged_fake_images, merged_real_images], axis=1)
 
         model_id, _ = self.get_model_id_and_dir()
