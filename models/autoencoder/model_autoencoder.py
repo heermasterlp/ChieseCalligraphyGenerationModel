@@ -428,8 +428,8 @@ class Font2FontAutoEncoder(object):
             self.validate_model(train_sample, ei, counter)
 
             # save checkpoint in each 50 epoch
-            if (ei + 1) % 50 == 0:
-                self.checkpoint(saver, counter)
+            # if (ei + 1) % 50 == 0:
+                # self.checkpoint(saver, counter)
 
         # save the last checkpoint
         print("Checkpoint: last checkpoint step %d" % counter)
