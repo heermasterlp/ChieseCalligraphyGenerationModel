@@ -103,26 +103,24 @@ class Font2FontAutoEncoder(object):
             s2, s4, s8, s16, s32, s64, s128 = int(s / 2), int(s / 4), int(s / 8), int(s / 16), int(s / 32), \
                                               int(s / 64), int(s / 128)
 
-            def decode_layer(x, output_width, output_filters, layer, enc_layer, dropout=False, do_concat=False):
-                dec = deconv2d(tf.nn.relu(x), [self.batch_size, output_width, output_width, output_filters],
+            def decode_layer(x, output_width, output_filters, layer, enc_layer, keep_rate=1.0):
+                dec = deconv2d(x, [self.batch_size, output_width, output_width, output_filters],
                                scope="g_d%d_deconv" % layer)
-                if layer != 8:
-                    # normalization for last layer is very important, otherwise GAN is unstable
-                    dec = batch_norm(dec, is_training, scope="g_d%d_bn" % layer)
-                if dropout:
-                    dec = tf.nn.dropout(dec, 0.5)
-                if do_concat:
-                    dec = tf.concat([dec, enc_layer], 3)
+                dec = tf.nn.relu(dec)
+
+                # if layer != 8:
+                #     # normalization for last layer is very important, otherwise GAN is unstable
+                #     dec = batch_norm(dec, is_training, scope="g_d%d_bn" % layer)
+                dec = tf.nn.dropout(dec, keep_rate=keep_rate)
                 return dec
-            d1 = decode_layer(encoded, s128, self.network_dim * 8, layer=1, enc_layer=encoding_layers["e7"],
-                              dropout=True)
-            d2 = decode_layer(d1, s64, self.network_dim * 8, layer=2, enc_layer=encoding_layers["e6"], dropout=True)
-            d3 = decode_layer(d2, s32, self.network_dim * 8, layer=3, enc_layer=encoding_layers["e5"], dropout=True)
+            d1 = decode_layer(encoded, s128, self.network_dim * 8, layer=1, enc_layer=encoding_layers["e7"])
+            d2 = decode_layer(d1, s64, self.network_dim * 8, layer=2, enc_layer=encoding_layers["e6"])
+            d3 = decode_layer(d2, s32, self.network_dim * 8, layer=3, enc_layer=encoding_layers["e5"])
             d4 = decode_layer(d3, s16, self.network_dim * 8, layer=4, enc_layer=encoding_layers["e4"])
             d5 = decode_layer(d4, s8, self.network_dim * 4, layer=5, enc_layer=encoding_layers["e3"])
             d6 = decode_layer(d5, s4, self.network_dim * 2, layer=6, enc_layer=encoding_layers["e2"])
             d7 = decode_layer(d6, s2, self.network_dim, layer=7, enc_layer=encoding_layers["e1"])
-            d8 = decode_layer(d7, s, self.output_filters, layer=8, enc_layer=None, do_concat=False)
+            d8 = decode_layer(d7, s, self.output_filters, layer=8, enc_layer=None)
 
             # output = tf.nn.sigmoid(d8) # (0, 1)
             output = tf.nn.tanh(d8) # (-1, 1)
@@ -167,7 +165,7 @@ class Font2FontAutoEncoder(object):
         # ce_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=real_B, logits=fake_B_logits))
 
         # loss
-        loss = l2_loss + l1_loss
+        loss = l2_loss
 
         # summaries
         loss_summary = tf.summary.scalar("loss", loss)
