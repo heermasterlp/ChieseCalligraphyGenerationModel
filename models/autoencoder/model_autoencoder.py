@@ -111,7 +111,7 @@ class Font2FontAutoEncoder(object):
                 # if layer != 8:
                 #     # normalization for last layer is very important, otherwise GAN is unstable
                 #     dec = batch_norm(dec, is_training, scope="g_d%d_bn" % layer)
-                dec = tf.nn.dropout(dec, keep_rate=keep_rate)
+                dec = tf.nn.dropout(dec, keep_prob=keep_rate)
                 return dec
             d1 = decode_layer(encoded, s128, self.network_dim * 8, layer=1, enc_layer=encoding_layers["e7"])
             d2 = decode_layer(d1, s64, self.network_dim * 8, layer=2, enc_layer=encoding_layers["e6"])
