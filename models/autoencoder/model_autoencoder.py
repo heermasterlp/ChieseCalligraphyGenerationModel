@@ -163,7 +163,12 @@ class Font2FontAutoEncoder(object):
         l2_loss = tf.reduce_mean(tf.square(tf.subtract(fake_B, real_B)))
 
         # reconstruct loss
-        # ce_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=real_B, logits=fake_B_logits))
+        ce_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=real_B, logits=fake_B_logits))
+
+        # tv loss
+        # width = self.output_width
+        # tv_loss = (tf.nn.l2_loss(fake_B[:, 1:, :, :] - fake_B[:, :width - 1, :, :]) / width
+        #            + tf.nn.l2_loss(fake_B[:, :, 1:, :] - fake_B[:, :, :width - 1, :]) / width)
 
         # loss
         loss = l1_loss
