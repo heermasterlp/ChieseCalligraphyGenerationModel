@@ -71,6 +71,7 @@ class Font2FontAutoEncoder(object):
                 enc = tf.nn.dropout(enc, keep_rate)
                 enc = conv2d(enc, output_filters=output_filters, scope="g_e%d_conv" % layer)
 
+                # batch norm is important for ae, or aw would output nothing!!!
                 enc = batch_norm(enc, is_training, scope="g_e%d_bn" % layer)
                 encode_layers["e%d" % layer] = enc
                 return enc
@@ -105,9 +106,8 @@ class Font2FontAutoEncoder(object):
                                               int(s / 64), int(s / 128)
 
             def decode_layer(x, output_width, output_filters, layer, enc_layer, keep_rate=1.0):
-                dec = deconv2d(x, [self.batch_size, output_width, output_width, output_filters],
+                dec = deconv2d(tf.nn.relu(x), [self.batch_size, output_width, output_width, output_filters],
                                scope="g_d%d_deconv" % layer)
-                dec = tf.nn.relu(dec)
 
                 if layer != 8:
                     # normalization for last layer is very important, otherwise GAN is unstable
