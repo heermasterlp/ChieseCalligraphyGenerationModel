@@ -166,7 +166,7 @@ class Font2FontAutoEncoder(object):
         # ce_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=real_B, logits=fake_B_logits))
 
         # loss
-        loss = l2_loss
+        loss = l1_loss
 
         # summaries
         loss_summary = tf.summary.scalar("loss", loss)
