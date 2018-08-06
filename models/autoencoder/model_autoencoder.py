@@ -67,10 +67,11 @@ class Font2FontAutoEncoder(object):
 
             def encode_layer(x, output_filters, layer, keep_rate=1.0):
                 # act = lrelu(x)
-                act = tf.nn.relu(x)
-                drop = tf.nn.dropout(act, keep_rate)
-                conv = conv2d(drop, output_filters=output_filters, scope="g_e%d_conv" % layer)
-                enc = batch_norm(conv, is_training, scope="g_e%d_bn" % layer)
+                enc = tf.nn.relu(x)
+                enc = tf.nn.dropout(enc, keep_rate)
+                enc = conv2d(enc, output_filters=output_filters, scope="g_e%d_conv" % layer)
+
+                # enc = batch_norm(conv, is_training, scope="g_e%d_bn" % layer)
                 encode_layers["e%d" % layer] = enc
                 return enc
 
@@ -108,9 +109,9 @@ class Font2FontAutoEncoder(object):
                                scope="g_d%d_deconv" % layer)
                 dec = tf.nn.relu(dec)
 
-                if layer != 8:
-                    # normalization for last layer is very important, otherwise GAN is unstable
-                    dec = batch_norm(dec, is_training, scope="g_d%d_bn" % layer)
+                # if layer != 8:
+                #     # normalization for last layer is very important, otherwise GAN is unstable
+                #     dec = batch_norm(dec, is_training, scope="g_d%d_bn" % layer)
                 dec = tf.nn.dropout(dec, keep_prob=keep_rate)
                 return dec
             d1 = decode_layer(encoded, s128, self.network_dim * 8, layer=1, enc_layer=encoding_layers["e7"])
