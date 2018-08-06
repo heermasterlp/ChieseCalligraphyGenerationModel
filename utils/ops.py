@@ -9,7 +9,7 @@ def batch_norm(x, is_training, epsilon=1e-5, decay=0.9, scope="batch_norm"):
                                         is_training=is_training, scope=scope)
 
 
-def conv2d(x, output_filters, kh=5, kw=5, sh=2, sw=2, stddev=0.02, scope="conv2d"):
+def conv2d(x, output_filters, kh=7, kw=7, sh=2, sw=2, stddev=0.02, scope="conv2d"):
     with tf.variable_scope(scope):
         # shape = x.get_shape().as_list()
         shape = x.shape
@@ -23,7 +23,7 @@ def conv2d(x, output_filters, kh=5, kw=5, sh=2, sw=2, stddev=0.02, scope="conv2d
         return Wconv_plus_b
 
 
-def deconv2d(x, output_shape, kh=5, kw=5, sh=2, sw=2, stddev=0.02, scope="deconv2d"):
+def deconv2d(x, output_shape, kh=7, kw=7, sh=2, sw=2, stddev=0.02, scope="deconv2d"):
     with tf.variable_scope(scope):
         # filter : [height, width, output_channels, in_channels]
         input_shape = x.get_shape().as_list()
