@@ -123,7 +123,6 @@ class Font2FontAutoEncoder(object):
             d7 = decode_layer(d6, s2, self.network_dim, layer=7, enc_layer=encoding_layers["e1"])
             d8 = decode_layer(d7, s, self.output_filters, layer=8, enc_layer=None)
 
-            # output = tf.nn.sigmoid(d8) # (0, 1)
             output = tf.nn.tanh(d8) # (-1, 1)
             return output, d8
 
@@ -171,7 +170,8 @@ class Font2FontAutoEncoder(object):
         #            + tf.nn.l2_loss(fake_B[:, :, 1:, :] - fake_B[:, :, :width - 1, :]) / width)
 
         # loss
-        loss = l1_loss
+        alpha = 0.6
+        loss = alpha * l2_loss + (1 - alpha) * l1_loss + ce_loss
 
         # summaries
         loss_summary = tf.summary.scalar("loss", loss)
