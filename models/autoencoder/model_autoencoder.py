@@ -171,7 +171,7 @@ class Font2FontAutoEncoder(object):
 
         # loss
         alpha = 0.6
-        loss = alpha * l2_loss + (1 - alpha) * l1_loss + ce_loss
+        loss = alpha * l2_loss + (1 - alpha) * l1_loss
 
         # summaries
         loss_summary = tf.summary.scalar("loss", loss)
