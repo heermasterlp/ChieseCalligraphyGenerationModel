@@ -97,6 +97,8 @@ def pickle_dataset(dataset, dataset_dir, font, image_mode, canvas_size, x_offset
         default_color = 255
         if image_mode == "RGB":
             default_color = (255, 255, 255)
+        elif image_mode == "1":
+            default_color = 1
 
         img = Image.new(image_mode, (canvas_size, canvas_size), default_color)
         draw = ImageDraw.Draw(img)
@@ -128,7 +130,7 @@ parser.add_argument('--shuffle', dest='shuffle', type=bool, default=True, help='
 parser.add_argument('--font', dest='font', required=True, help='path of the source font')
 parser.add_argument('--char_size', dest='char_size', type=int, default=256, help='character size')
 parser.add_argument('--image_mode', dest='image_mode', type=str, default="L",
-                    help='image mode, L is grayscale and RGB is rgb image ')
+                    help='image mode, 1 is bitmap, L is grayscale and RGB is rgb image ')
 parser.add_argument('--canvas_size', dest='canvas_size', type=int, default=256, help='canvas size')
 parser.add_argument('--x_offset', dest='x_offset', type=int, default=0, help='x offset')
 parser.add_argument('--y_offset', dest='y_offset', type=int, default=0, help='y_offset')
