@@ -295,7 +295,7 @@ class Font2FontAutoEncoder(object):
         :return:
         """
         fake_images, real_images,loss = self.generate_fake_samples(images)
-        print("Sample: l1_loss: %.5f " % (loss))
+        print("Sample: loss: %.5f " % (loss))
 
         merged_fake_images = merge(scale_back(fake_images), [self.batch_size, 1])
         merged_real_images = merge(scale_back(real_images), [self.batch_size, 1])
