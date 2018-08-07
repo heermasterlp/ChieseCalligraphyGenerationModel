@@ -405,12 +405,12 @@ class Font2FontAutoEncoder(object):
         for ei in range(epoch):
             train_batch_iter = data_provider.get_train_iter(self.batch_size)
 
-            # update learning rate for lr_g and lr_d
-            if (ei+1) % schedule == 0:
-                update_lr = current_lr / 2.
-                update_lr = max(update_lr, 0.00002)
-                print("decay learing rate  from %.6f to %.7f" % (current_lr, update_lr))
-                current_lr = update_lr
+            # update learning rate for lr
+            # if (ei+1) % schedule == 0:
+            #     update_lr = current_lr / 2.
+            #     update_lr = max(update_lr, 0.00002)
+            #     print("decay learing rate  from %.6f to %.7f" % (current_lr, update_lr))
+            #     current_lr = update_lr
 
             for bid, batch in enumerate(train_batch_iter):
                 counter += 1
