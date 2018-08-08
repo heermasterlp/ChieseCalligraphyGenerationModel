@@ -38,7 +38,7 @@ def conv2d(x, output_filters, kh=KH, kw=KW, sh=2, sw=2, stddev=0.02, scope="conv
         shape = x.shape
         # W = tf.get_variable('W', [kh, kw, shape[-1], output_filters],
         #                     initializer=tf.truncated_normal_initializer(stddev=stddev))
-        W = tf.Variable(tf.truncated_normal([[kh, kw, shape[-1], output_filters]], stddev=stddev), dtype=tf.float32)
+        W = tf.Variable(tf.truncated_normal([kh, kw, shape[-1], output_filters], stddev=stddev), dtype=tf.float32)
         Wconv = tf.nn.conv2d(x, W, strides=[1, sh, sw, 1], padding='SAME')
 
         # biases = tf.get_variable('b', [output_filters], initializer=tf.constant_initializer(0.0))
