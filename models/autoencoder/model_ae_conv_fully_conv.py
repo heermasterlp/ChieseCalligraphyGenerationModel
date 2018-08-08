@@ -91,13 +91,13 @@ class Font2FontAutoEncoder(object):
         flat1 = tf.layers.flatten(e5)
 
         # fully connect 1: (8 * 8 * 64 * 8) -> 10000
-        fc1 = fc(flat1, 10000)
+        fc1 = fc(flat1, 10000, scope="fc1")
 
         # fully connect 2: 10000 -> 100
-        code = fc(fc1, 100)
+        code = fc(fc1, 100, scope="code")
 
         # fully connect 3: 100 -> 10000
-        fc2 = fc(code, 10000)
+        fc2 = fc(code, 10000, scope="fc2")
 
         # fully connnect4: 10000 -> (8 * 8 * 64 * 8)
         flat2 = fc(fc2, 8 * 8 * 64 * 8)
