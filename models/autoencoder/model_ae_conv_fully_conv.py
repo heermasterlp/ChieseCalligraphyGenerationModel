@@ -10,8 +10,6 @@ from utils.ops import conv2d, deconv2d, lrelu, fc, batch_norm
 from models.autoencoder.dataset import TrainDataProvider, InjectDataProvider
 from utils.utils import merge, save_concat_images, save_image, scale_back
 
-
-
 LossHandle = namedtuple("LossHandle", ["loss"])
 InputHandle = namedtuple("InputHandle", ["real_data"])
 EvalHandle = namedtuple("EvalHandle", ["network", "target", "source"])
@@ -51,82 +49,7 @@ class Font2FontAutoEncoder(object):
                 os.makedirs(self.log_dir)
                 print("create log directory")
 
-    def encoder(self, images, is_training, reuse=False):
-        """
-        Encoder network
-        :param images:
-        :param is_training:
-        :param reuse:
-        :return:
-        """
-        with tf.variable_scope("generator"):
-            if reuse:
-                tf.get_variable_scope().reuse_variables()
-
-            encode_layers = dict()
-
-            def encode_layer(x, output_filters, layer, keep_rate=1.0):
-                # act = lrelu(x)
-                enc = tf.nn.relu(x)
-                enc = tf.nn.dropout(enc, keep_rate)
-                enc = conv2d(enc, output_filters=output_filters, scope="g_e%d_conv" % layer)
-
-                # batch norm is important for ae, or aw would output nothing!!!
-                enc = batch_norm(enc, is_training, scope="g_e%d_bn" % layer)
-                encode_layers["e%d" % layer] = enc
-                return enc
-
-            e1 = conv2d(images, self.network_dim, scope="g_e1_env")
-            encode_layers["e1"] = e1
-            e2 = encode_layer(e1, self.network_dim * 2, 2)
-            e3 = encode_layer(e2, self.network_dim * 4, 3)
-            e4 = encode_layer(e3, self.network_dim * 8, 4)
-            e5 = encode_layer(e4, self.network_dim * 8, 5)
-            e6 = encode_layer(e5, self.network_dim * 8, 6)
-            e7 = encode_layer(e6, self.network_dim * 8, 7)
-            e8 = encode_layer(e7, self.network_dim * 8, 8)
-
-            return e8, encode_layers
-
-    def decoder(self, encoded, encoding_layers, is_training, reuse=False):
-        """
-        Decoder network
-        :param encoded:
-        :param encoding_layers:
-        :param is_training:
-        :param reuse:
-        :return:
-        """
-        with tf.variable_scope("generator"):
-            if reuse:
-                tf.get_variable_scope().reuse_variables()
-
-            s = self.output_width
-            s2, s4, s8, s16, s32, s64, s128 = int(s / 2), int(s / 4), int(s / 8), int(s / 16), int(s / 32), \
-                                              int(s / 64), int(s / 128)
-
-            def decode_layer(x, output_width, output_filters, layer, enc_layer, keep_rate=1.0):
-                dec = deconv2d(tf.nn.relu(x), [self.batch_size, output_width, output_width, output_filters],
-                               scope="g_d%d_deconv" % layer)
-
-                if layer != 8:
-                    # normalization for last layer is very important, otherwise GAN is unstable
-                    dec = batch_norm(dec, is_training, scope="g_d%d_bn" % layer)
-                dec = tf.nn.dropout(dec, keep_prob=keep_rate)
-                return dec
-            d1 = decode_layer(encoded, s128, self.network_dim * 8, layer=1, enc_layer=encoding_layers["e7"])
-            d2 = decode_layer(d1, s64, self.network_dim * 8, layer=2, enc_layer=encoding_layers["e6"])
-            d3 = decode_layer(d2, s32, self.network_dim * 8, layer=3, enc_layer=encoding_layers["e5"])
-            d4 = decode_layer(d3, s16, self.network_dim * 8, layer=4, enc_layer=encoding_layers["e4"])
-            d5 = decode_layer(d4, s8, self.network_dim * 4, layer=5, enc_layer=encoding_layers["e3"])
-            d6 = decode_layer(d5, s4, self.network_dim * 2, layer=6, enc_layer=encoding_layers["e2"])
-            d7 = decode_layer(d6, s2, self.network_dim, layer=7, enc_layer=encoding_layers["e1"])
-            d8 = decode_layer(d7, s, self.output_filters, layer=8, enc_layer=None)
-
-            output = tf.nn.tanh(d8) # (-1, 1)
-            return output, d8
-
-    def network(self, images, is_training, reuse=False):
+    def network(self, images, is_training, keep_prob=1.0, reuse=False):
         """
         Network architecture.
         :param images:
@@ -134,9 +57,88 @@ class Font2FontAutoEncoder(object):
         :param reuse:
         :return:
         """
-        e8, enc_layers = self.encoder(images, is_training=is_training, reuse=reuse)
-        output, d8 = self.decoder(e8, enc_layers, is_training=is_training, reuse=reuse)
-        return output, d8
+        # Encoder conv layers
+        # (256, 256) -> (128, 128)
+        e1 = conv2d(images, self.network_dim, scope="g_e1_conv")
+        e1 = tf.nn.relu(e1)
+        e1 = tf.nn.dropout(e1, keep_prob=keep_prob)
+
+        # (128, 128) -> (64, 64)
+        e2 = conv2d(e1, self.network_dim * 2, scope="g_e2_conv")
+        e2 = batch_norm(e2, is_training, scope="g_e2_bn")
+        e2 = tf.nn.relu(e2)
+        e2 = tf.nn.dropout(e2, keep_prob=keep_prob)
+
+        # (64, 64) -> (32, 32)
+        e3 = conv2d(e2, self.network_dim * 4, scope="g_e3_conv")
+        e3 = batch_norm(e3, is_training, scope="g_e3_bn")
+        e3 = tf.nn.relu(e3)
+        e3 = tf.nn.dropout(e3, keep_prob=keep_prob)
+
+        # (32, 32) -> (16, 16)
+        e4 = conv2d(e3, self.network_dim * 8, scope="g_e4_conv")
+        e4 = batch_norm(e4, is_training, scope="g_e4_bn")
+        e4 = tf.nn.relu(e4)
+        e4 = tf.nn.dropout(e4, keep_prob=keep_prob)
+
+        # (16, 16) -> (8, 8)
+        e5 = conv2d(e4, self.network_dim * 8, scope="g_e5_conv")
+        e5 = batch_norm(e5, is_training, scope="g_e5_bn")
+        e5 = tf.nn.relu(e5)
+        e5 = tf.nn.dropout(e5, keep_prob=keep_prob)
+
+        # flatten   （8， 8， 64 * 8）-> (8 * 8 * 64 * 8)
+        flat1 = tf.layers.flatten(e5)
+
+        # fully connect 1: (8 * 8 * 64 * 8) -> 10000
+        fc1 = fc(flat1, 10000)
+
+        # fully connect 2: 10000 -> 100
+        code = fc(fc1, 100)
+
+        # fully connect 3: 100 -> 10000
+        fc2 = fc(code, 10000)
+
+        # fully connnect4: 10000 -> (8 * 8 * 64 * 8)
+        flat2 = fc(fc2, 8 * 8 * 64 * 8)
+        # reshape tensor : [batch_size, 8 * 8 * 64 * 8] -> [batch_size, 8, 8, 64 * 8]
+        flat2 = tf.reshape(flat2, [-1, 8, 8, 64 * 8])
+
+        # Decoder
+        # (8, 8) -> (16, 16)
+        d1 = tf.nn.relu(flat2)
+        d1 = deconv2d(d1, [self.batch_size, 16, 16, self.network_dim * 8], scope="g_d1_deconv")
+        d1 = batch_norm(d1, is_training, scope="g_d1_bn")
+        d1 = tf.nn.dropout(d1, keep_prob=keep_prob)
+
+        # (16, 16) -> (32, 32)
+        d2 = tf.nn.relu(d1)
+        d2 = deconv2d(d2, [self.batch_size, 32, 32, self.network_dim * 8], scope="g_d2_deconv")
+        d2 = batch_norm(d2, is_training, scope="g_d2_bn")
+        d2 = tf.nn.dropout(d2, keep_prob=keep_prob)
+
+        # (32, 32) -> (64, 64)
+        d3 = tf.nn.relu(d2)
+        d3 = deconv2d(d3, [self.batch_size, 64, 64, self.network_dim * 4], scope="g_d3_deconv")
+        d3 = batch_norm(d3, is_training, scope="g_d3_bn")
+        d3 = tf.nn.dropout(d3, keep_prob=keep_prob)
+
+        # (64, 64) -> (128, 128)
+        d4 = tf.nn.relu(d3)
+        d4 = deconv2d(d4, [self.batch_size, 128, 128, self.network_dim * 2], scope="g_d4_deconv")
+        d4 = batch_norm(d4, is_training, scope="g_d4_bn")
+        d4 = tf.nn.dropout(d4, keep_prob=keep_prob)
+
+        # (128, 128) -> (256, 256)
+        d5 = tf.nn.relu(d4)
+        d5 = deconv2d(d5, [self.batch_size, 256, 256, 1], scope="g_d5_deconv")
+        # no batch norm here
+        d5 = tf.nn.dropout(d5, keep_prob=keep_prob)
+
+        # output
+        output = tf.nn.tanh(d5)
+
+        return output, d5
 
     def build_model(self, is_training=True):
         """
@@ -231,7 +233,7 @@ class Font2FontAutoEncoder(object):
         input_handle = getattr(self, "input_handle")
         loss_handle = getattr(self, "loss_handle")
         eval_handle = getattr(self, "eval_handle")
-        summary_handle = getattr(self,"summary_handle")
+        summary_handle = getattr(self, "summary_handle")
         return input_handle, loss_handle, eval_handle, summary_handle
 
     def get_model_id_and_dir(self):
@@ -279,11 +281,11 @@ class Font2FontAutoEncoder(object):
         """
         input_handle, loss_handle, eval_handle, summary_handle = self.retrieve_handles()
 
-        fake_images, real_images, loss = self.sess.run([eval_handle.network,  eval_handle.target,
-                                                           loss_handle.loss],
-                                                           feed_dict={
-                                                                input_handle.real_data: input_images
-                                                            })
+        fake_images, real_images, loss = self.sess.run([eval_handle.network, eval_handle.target,
+                                                        loss_handle.loss],
+                                                       feed_dict={
+                                                           input_handle.real_data: input_images
+                                                       })
         return fake_images, real_images, loss
 
     def validate_model(self, images, epoch, step):
@@ -294,14 +296,12 @@ class Font2FontAutoEncoder(object):
         :param step:
         :return:
         """
-        fake_images, real_images,loss = self.generate_fake_samples(images)
+        fake_images, real_images, loss = self.generate_fake_samples(images)
         print("Sample: loss: %.5f " % (loss))
 
         merged_fake_images = merge(scale_back(fake_images), [self.batch_size, 1])
         merged_real_images = merge(scale_back(real_images), [self.batch_size, 1])
         merged_pair = np.concatenate([merged_fake_images, merged_real_images], axis=1)
-
-        
 
         model_id, _ = self.get_model_id_and_dir()
         model_sample_dir = os.path.join(self.sample_dir, model_id)
@@ -418,11 +418,11 @@ class Font2FontAutoEncoder(object):
                 counter += 1
                 batch_images = batch
 
-                _, loss, g_summary = self.sess.run([g_optimizer, loss_handle.loss,  summary_handle.g_merged],
-                                                        feed_dict={
-                                                            real_data: batch_images,
-                                                            learning_rate: current_lr
-                                                        })
+                _, loss, g_summary = self.sess.run([g_optimizer, loss_handle.loss, summary_handle.g_merged],
+                                                   feed_dict={
+                                                       real_data: batch_images,
+                                                       learning_rate: current_lr
+                                                   })
                 passed_time = time.time() - start_time
 
                 log_format = "Epoch: [%2d], [%4d/%4d] time: %4.4f, loss: %.5f"
@@ -435,7 +435,7 @@ class Font2FontAutoEncoder(object):
 
             # save checkpoint in each 50 epoch
             # if (ei + 1) % 50 == 0:
-                # self.checkpoint(saver, counter)
+            # self.checkpoint(saver, counter)
 
         # save the last checkpoint
         print("Checkpoint: last checkpoint step %d" % counter)
