@@ -303,8 +303,6 @@ class Font2FontAutoEncoder(object):
         merged_real_images = merge(scale_back(real_images), [self.batch_size, 1])
         merged_pair = np.concatenate([merged_fake_images, merged_real_images], axis=1)
 
-        print(np.array(code)[0])
-
         model_id, _ = self.get_model_id_and_dir()
         model_sample_dir = os.path.join(self.sample_dir, model_id)
         if not os.path.exists(model_sample_dir):
