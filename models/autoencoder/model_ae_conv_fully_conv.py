@@ -12,7 +12,7 @@ from utils.utils import merge, save_concat_images, save_image, scale_back
 
 LossHandle = namedtuple("LossHandle", ["loss"])
 InputHandle = namedtuple("InputHandle", ["real_data"])
-EvalHandle = namedtuple("EvalHandle", ["network", "target", "source"])
+EvalHandle = namedtuple("EvalHandle", ["network", "target", "source", "code"])
 SummaryHandle = namedtuple("SummaryHandle", ["g_merged"])
 
 
@@ -138,7 +138,7 @@ class Font2FontAutoEncoder(object):
         # output
         output = tf.nn.tanh(d5)
 
-        return output, d5
+        return output, d5, code
 
     def build_model(self, is_training=True):
         """
@@ -155,7 +155,7 @@ class Font2FontAutoEncoder(object):
         real_A = real_data[:, :, :, :self.input_filters]
 
         # fake B
-        fake_B, fake_B_logits = self.network(real_A, is_training=is_training)
+        fake_B, fake_B_logits, code = self.network(real_A, is_training=is_training)
 
         # L1 loss
         l1_loss = tf.reduce_mean(tf.abs(tf.subtract(fake_B, real_B)))
@@ -182,7 +182,7 @@ class Font2FontAutoEncoder(object):
         # expose useful nodes in the graph as handles globally
         input_handle = InputHandle(real_data=real_data)
         loss_handle = LossHandle(loss=loss)
-        eval_handle = EvalHandle(network=fake_B, target=real_B, source=real_A)
+        eval_handle = EvalHandle(network=fake_B, target=real_B, source=real_A, code=code)
         summary_handle = SummaryHandle(g_merged=g_merged_summary)
 
         # those operations will be shared make them visiual globally
@@ -281,12 +281,12 @@ class Font2FontAutoEncoder(object):
         """
         input_handle, loss_handle, eval_handle, summary_handle = self.retrieve_handles()
 
-        fake_images, real_images, loss = self.sess.run([eval_handle.network, eval_handle.target,
-                                                        loss_handle.loss],
+        fake_images, real_images, loss, code = self.sess.run([eval_handle.network, eval_handle.target,
+                                                        loss_handle.loss, eval_handle.code],
                                                        feed_dict={
                                                            input_handle.real_data: input_images
                                                        })
-        return fake_images, real_images, loss
+        return fake_images, real_images, loss, code
 
     def validate_model(self, images, epoch, step):
         """
@@ -296,12 +296,14 @@ class Font2FontAutoEncoder(object):
         :param step:
         :return:
         """
-        fake_images, real_images, loss = self.generate_fake_samples(images)
+        fake_images, real_images, loss, code = self.generate_fake_samples(images)
         print("Sample: loss: %.5f " % (loss))
 
         merged_fake_images = merge(scale_back(fake_images), [self.batch_size, 1])
         merged_real_images = merge(scale_back(real_images), [self.batch_size, 1])
         merged_pair = np.concatenate([merged_fake_images, merged_real_images], axis=1)
+
+        print(np.array(code)[0])
 
         model_id, _ = self.get_model_id_and_dir()
         model_sample_dir = os.path.join(self.sample_dir, model_id)
@@ -438,6 +440,6 @@ class Font2FontAutoEncoder(object):
             # self.checkpoint(saver, counter)
 
         # save the last checkpoint
-        print("Checkpoint: last checkpoint step %d" % counter)
-        self.checkpoint(saver, counter)
+        # print("Checkpoint: last checkpoint step %d" % counter)
+        # self.checkpoint(saver, counter)
 
