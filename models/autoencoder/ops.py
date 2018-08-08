@@ -36,14 +36,14 @@ def conv2d(x, output_filters, kh=KH, kw=KW, sh=2, sw=2, stddev=0.02, scope="conv
     """
     with tf.variable_scope(scope):
         shape = x.shape
-        # W = tf.get_variable('W', [kh, kw, shape[-1], output_filters],
-        #                     initializer=tf.truncated_normal_initializer(stddev=stddev))
-        W = tf.Variable(tf.truncated_normal([kh, kw, shape[-1], output_filters], stddev=stddev), dtype=tf.float32)
+        W = tf.get_variable('W', [kh, kw, shape[-1], output_filters],
+                            initializer=tf.truncated_normal_initializer(stddev=stddev))
+        # W = tf.Variable(tf.truncated_normal([kh, kw, shape[-1], output_filters], stddev=stddev), dtype=tf.float32)
         Wconv = tf.nn.conv2d(x, W, strides=[1, sh, sw, 1], padding='SAME')
 
-        # biases = tf.get_variable('b', [output_filters], initializer=tf.constant_initializer(0.0))
+        biases = tf.get_variable('b', [output_filters], initializer=tf.constant_initializer(0.0))
         # biases = tf.Variable(tf.truncated_normal([output_filters], stddev=stddev))
-        biases = tf.Variable(tf.zeros([output_filters]), dtype=tf.float32)
+        # biases = tf.Variable(tf.zeros([output_filters]), dtype=tf.float132)
         Wconv_plus_b = tf.reshape(tf.nn.bias_add(Wconv, biases), Wconv.get_shape())
 
         return Wconv_plus_b
@@ -64,16 +64,16 @@ def deconv2d(x, output_shape, kh=KH, kw=KW, sh=2, sw=2, stddev=0.02, scope="deco
     """
     with tf.variable_scope(scope):
         input_shape = x.shape
-        # W = tf.get_variable('W', [kh, kw, output_shape[-1], input_shape[-1]],
-        #                     initializer=tf.random_normal_initializer(stddev=stddev))
-        W = tf.Variable(tf.truncated_normal([kh, kw, output_shape[-1], input_shape[-1]], stddev=stddev),
-                        dtype=tf.float32)
+        W = tf.get_variable('W', [kh, kw, output_shape[-1], input_shape[-1]],
+                            initializer=tf.random_normal_initializer(stddev=stddev))
+        # W = tf.Variable(tf.truncated_normal([kh, kw, output_shape[-1], input_shape[-1]], stddev=stddev),
+        #                 dtype=tf.float32)
 
         deconv = tf.nn.conv2d_transpose(x, W, output_shape=output_shape, strides=[1, sh, sw, 1])
 
-        # biases = tf.get_variable('b', [output_shape[-1]], initializer=tf.constant_initializer(0.0))
+        biases = tf.get_variable('b', [output_shape[-1]], initializer=tf.constant_initializer(0.0))
         # biases = tf.Variable(tf.truncated_normal([output_shape[-1]], stddev=stddev))
-        biases = tf.Variable(tf.zeros([output_shape[-1]]), dtype=tf.float32)
+        # biases = tf.Variable(tf.zeros([output_shape[-1]]), dtype=tf.float32)
         deconv_plus_b = tf.reshape(tf.nn.bias_add(deconv, biases), deconv.get_shape())
 
         return deconv_plus_b
@@ -100,12 +100,12 @@ def fc(x, output_size, stddev=0.02, scope="fc"):
     """
     with tf.variable_scope(scope):
         shape = x.get_shape().as_list()
-        W = tf.Variable(tf.truncated_normal([shape[1], output_size], stddev=stddev), dtype=tf.float32)
-        # W = tf.get_variable("W", [shape[1], output_size], tf.float32,
-        #                     tf.random_normal_initializer(stddev=stddev))
-        # b = tf.get_variable("b", [output_size],
-        #                     initializer=tf.constant_initializer(0.0))
-        b = tf.Variable(tf.zeros([output_size]), dtype=tf.float32)
+        # W = tf.Variable(tf.truncated_normal([shape[1], output_size], stddev=stddev), dtype=tf.float32)
+        W = tf.get_variable("W", [shape[1], output_size], tf.float32,
+                            tf.random_normal_initializer(stddev=stddev))
+        b = tf.get_variable("b", [output_size],
+                            initializer=tf.constant_initializer(0.0))
+        # b = tf.Variable(tf.zeros([output_size]), dtype=tf.float32)
         return tf.matmul(x, W) + b
 
 
