@@ -412,8 +412,8 @@ class Font2FontAutoEncoder(object):
                                                    })
                 passed_time = time.time() - start_time
 
-                # log_format = "Epoch: [%2d], [%4d/%4d] time: %4.4f, loss: %.5f"
-                # print(log_format % (ei, bid, total_batches, passed_time, loss))
+                log_format = "Epoch: [%2d], [%4d/%4d] time: %4.4f, loss: %.5f"
+                print(log_format % (ei, bid, total_batches, passed_time, loss))
                 summary_writer.add_summary(g_summary, counter)
 
             # validation in each epoch used the train samples
