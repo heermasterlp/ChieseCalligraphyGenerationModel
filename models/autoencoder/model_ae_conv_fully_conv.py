@@ -290,7 +290,7 @@ class Font2FontAutoEncoder(object):
 
     def validate_model(self, images, epoch, step):
         """
-
+        Validate this auto-encoder model.
         :param images:
         :param epoch:
         :param step:
@@ -311,23 +311,9 @@ class Font2FontAutoEncoder(object):
         sample_img_path = os.path.join(model_sample_dir, "sample_%04d_%06d.png" % (epoch, step))
         misc.imsave(sample_img_path, merged_pair)
 
-    def export_generator(self, save_dir, model_dir, model_name="gen_model"):
-        """
-
-        :param save_dir:
-        :param model_dir:
-        :param model_name:
-        :return:
-        """
-        saver = tf.train.Saver()
-        self.restore_model(saver, model_dir)
-
-        gen_saver = tf.train.Saver(var_list=self.retrieve_generator_vars())
-        gen_saver.save(self.sess, os.path.join(save_dir, model_name), global_step=0)
-
     def infer(self, source_obj, model_dir, save_dir):
         """
-
+        Inference this auto-encoder model.
         :param source_obj:
         :param model_dir:
         :param save_dir:
@@ -348,7 +334,8 @@ class Font2FontAutoEncoder(object):
         count = 0
         batch_buffer = list()
         for source_imgs in source_iter:
-            fake_imgs = self.generate_fake_samples(source_imgs)[0]
+            fake_imgs, real_imgs, loss, code = self.generate_fake_samples(source_imgs)
+
             merged_fake_images = merge(fake_imgs, [self.batch_size, 1])
             batch_buffer.append(merged_fake_images)
             if len(batch_buffer) == 10:
@@ -362,7 +349,7 @@ class Font2FontAutoEncoder(object):
     def train(self, lr=0.0002, epoch=100, schedule=10, resume=True, freeze_encoder=False,
               sample_steps=1500, checkpoint_steps=15000):
         """
-
+        Training this auto-encoder model.
         :param lr:
         :param epoch:
         :param schedule:

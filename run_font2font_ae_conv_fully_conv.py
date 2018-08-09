@@ -43,7 +43,14 @@ def infer_model():
     Infer the auto-encoder model.
     :return:
     """
-    pass
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+
+    with tf.Session(config) as sess:
+        model = Font2FontAutoEncoder(args.experiment_dir, batch_size=args.batch_size, experiment_id=args.experiment_id,
+                                     input_width=args.image_size, output_width=args.image_size,
+                                     Loss_penalty=args.Loss_penalty, network_dim=args.network_dim)
+        model.infer(args.source_obj, args.model_dir, args.save_dir)
 
 
 parser = argparse.ArgumentParser(description='Train or infer with Auto-encoder model')
