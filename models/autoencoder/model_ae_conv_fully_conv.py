@@ -140,7 +140,7 @@ class Font2FontAutoEncoder(object):
 
         return output, d5, code
 
-    def build_model(self, is_training=True):
+    def build_model(self, keep_prob=1.0, is_training=True):
         """
         Build model of autoencoder.
         :param is_training:
@@ -155,7 +155,7 @@ class Font2FontAutoEncoder(object):
         real_A = real_data[:, :, :, :self.input_filters]
 
         # fake B
-        fake_B, fake_B_logits, code = self.network(real_A, is_training=is_training)
+        fake_B, fake_B_logits, code = self.network(real_A, keep_prob=keep_prob, is_training=is_training)
 
         # L1 loss
         l1_loss = tf.reduce_mean(tf.abs(tf.subtract(fake_B, real_B)))
@@ -412,8 +412,8 @@ class Font2FontAutoEncoder(object):
                                                    })
                 passed_time = time.time() - start_time
 
-                log_format = "Epoch: [%2d], [%4d/%4d] time: %4.4f, loss: %.5f"
-                print(log_format % (ei, bid, total_batches, passed_time, loss))
+                # log_format = "Epoch: [%2d], [%4d/%4d] time: %4.4f, loss: %.5f"
+                # print(log_format % (ei, bid, total_batches, passed_time, loss))
                 summary_writer.add_summary(g_summary, counter)
 
             # validation in each epoch used the train samples

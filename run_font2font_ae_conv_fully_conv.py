@@ -25,7 +25,7 @@ def train_model():
                                      input_width=args.image_size, output_width=args.image_size,
                                      Loss_penalty=args.Loss_penalty, network_dim=args.network_dim)
         model.register_session(sess)
-        model.build_model(is_training=True)
+        model.build_model(keep_prob=args.keep_prob, is_training=True)
         model.train(lr=args.lr, epoch=args.epoch, resume=args.resume, schedule=args.schedule,
                     freeze_encoder=args.freeze_encoder, sample_steps=args.sample_steps,
                     checkpoint_steps=args.checkpoint_steps)
@@ -67,6 +67,7 @@ parser.add_argument('--Loss_penalty', dest='Loss_penalty', type=float, default=1
 parser.add_argument('--epoch', dest='epoch', type=int, default=100, help='number of epoch')
 parser.add_argument('--batch_size', dest='batch_size', type=int, default=16, help='number of examples in batch')
 parser.add_argument('--lr', dest='lr', type=float, default=0.001, help='initial learning rate for adam')
+parser.add_argument('--keep_prob', dest='keep_prob', type=float, default=1.0, help='dropout keep_prob')
 parser.add_argument('--schedule', dest='schedule', type=int, default=10, help='number of epochs to half learning rate')
 parser.add_argument('--resume', dest='resume', type=int, default=1, help='resume from previous training')
 parser.add_argument('--freeze_encoder', dest='freeze_encoder', type=int, default=0,
