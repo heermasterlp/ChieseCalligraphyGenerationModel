@@ -51,6 +51,7 @@ def infer_model():
                                      input_width=args.image_size, output_width=args.image_size,
                                      Loss_penalty=args.Loss_penalty, network_dim=args.network_dim)
         model.register_session(sess)
+        model.build_model(keep_prob=args.keep_prob, is_training=False)
         model.infer(args.source_obj, args.model_dir, args.save_dir)
 
 
