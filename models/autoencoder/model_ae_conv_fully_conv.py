@@ -5,6 +5,7 @@ import scipy.misc as misc
 import os
 import time
 from collections import namedtuple
+import pickle
 
 from models.autoencoder.ops import conv2d, deconv2d, lrelu, fc, batch_norm
 from models.autoencoder.dataset import TrainDataProvider, InjectDataProvider
@@ -330,11 +331,16 @@ class Font2FontAutoEncoder(object):
 
         count = 0
         batch_buffer = list()
-        code_list = []
+        code_list = None
         for source_imgs in source_iter:
             fake_imgs, real_imgs, loss, code = self.generate_fake_samples(source_imgs)
-            print(code)
-            code_list.append(code)
+            print(code.shape)
+            if code_list is None:
+                code_list = code
+            else:
+                np.concatenate(code_list, code)
+
+            print(code_list.shape)
 
             merged_fake_images = merge(fake_imgs, [self.batch_size, 1])
             batch_buffer.append(merged_fake_images)
