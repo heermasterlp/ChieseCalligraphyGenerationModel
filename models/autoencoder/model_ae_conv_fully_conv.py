@@ -336,9 +336,9 @@ class Font2FontAutoEncoder(object):
             fake_imgs, real_imgs, loss, code = self.generate_fake_samples(source_imgs)
             print(code.shape)
             if code_list is None:
-                code_list = code
+                code_list = code.copy()
             else:
-                np.concatenate(code_list, code)
+                code_list = np.concatenate(code_list, code)
 
             print(code_list.shape)
 
