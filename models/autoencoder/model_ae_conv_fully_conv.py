@@ -338,7 +338,7 @@ class Font2FontAutoEncoder(object):
             if code_list is None:
                 code_list = code.copy()
             else:
-                code_list = np.concatenate(code_list, code)
+                code_list = np.concatenate([code_list, code])
 
             print(code_list.shape)
 
