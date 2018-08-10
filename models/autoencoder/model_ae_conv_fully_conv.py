@@ -334,13 +334,10 @@ class Font2FontAutoEncoder(object):
         code_list = None
         for source_imgs in source_iter:
             fake_imgs, real_imgs, loss, code = self.generate_fake_samples(source_imgs)
-            print(code.shape)
             if code_list is None:
                 code_list = code.copy()
             else:
                 code_list = np.concatenate([code_list, code])
-
-            print(code_list.shape)
 
             merged_fake_images = merge(fake_imgs, [self.batch_size, 1])
             batch_buffer.append(merged_fake_images)
@@ -351,10 +348,10 @@ class Font2FontAutoEncoder(object):
         if batch_buffer:
             # last batch
             save_imgs(batch_buffer, count)
-        # with open(os.path.join(save_dir, "code.txt"), 'w') as f:
-        #     for code in code_list:
-        #         f.write(code)
-        #         f.write("\n")
+
+        if code_list is None:
+            code_list.dump(os.path.join(save_dir, "code.dat"))
+            print("code.dat dump successed!")
 
     def train(self, lr=0.0002, epoch=100, schedule=10, resume=True, freeze_encoder=False,
               sample_steps=1500, checkpoint_steps=15000):
