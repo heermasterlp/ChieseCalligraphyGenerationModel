@@ -323,9 +323,6 @@ class Font2FontAutoEncoder(object):
         _, model_dir = self.get_model_id_and_dir()
         self.restore_model(saver, model_dir)
 
-        # saver = tf.train.Saver(var_list=self.retrieve_generator_vars())
-        # self.restore_model(saver, model_dir)
-
         def save_imgs(imgs, count):
             p = os.path.join(save_dir, "inferred_%04d.png" % count)
             save_concat_images(imgs, img_path=p)
@@ -336,7 +333,7 @@ class Font2FontAutoEncoder(object):
         code_list = []
         for source_imgs in source_iter:
             fake_imgs, real_imgs, loss, code = self.generate_fake_samples(source_imgs)
-
+            print(code)
             code_list.append(code)
 
             merged_fake_images = merge(fake_imgs, [self.batch_size, 1])
@@ -348,10 +345,10 @@ class Font2FontAutoEncoder(object):
         if batch_buffer:
             # last batch
             save_imgs(batch_buffer, count)
-        with open(os.path.join(save_dir, "code.txt"), 'w') as f:
-            for code in code_list:
-                f.write(code)
-                f.write("\n")
+        # with open(os.path.join(save_dir, "code.txt"), 'w') as f:
+        #     for code in code_list:
+        #         f.write(code)
+        #         f.write("\n")
 
     def train(self, lr=0.0002, epoch=100, schedule=10, resume=True, freeze_encoder=False,
               sample_steps=1500, checkpoint_steps=15000):
