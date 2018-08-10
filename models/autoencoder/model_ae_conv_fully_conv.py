@@ -318,8 +318,13 @@ class Font2FontAutoEncoder(object):
         source_iter = source_provider.get_iter(self.batch_size)
 
         tf.global_variables_initializer().run()
-        saver = tf.train.Saver(var_list=self.retrieve_generator_vars())
+
+        saver = tf.train.Saver(max_to_keep=100)
+        _, model_dir = self.get_model_id_and_dir()
         self.restore_model(saver, model_dir)
+
+        # saver = tf.train.Saver(var_list=self.retrieve_generator_vars())
+        # self.restore_model(saver, model_dir)
 
         def save_imgs(imgs, count):
             p = os.path.join(save_dir, "inferred_%04d.png" % count)
