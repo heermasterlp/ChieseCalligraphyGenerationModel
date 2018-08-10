@@ -349,7 +349,7 @@ class Font2FontAutoEncoder(object):
             # last batch
             save_imgs(batch_buffer, count)
 
-        if code_list:
+        if code_list is not None:
             code_list.dump(os.path.join(save_dir, "code.dat"))
             print("code.dat dump successed!")
 
