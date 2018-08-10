@@ -318,7 +318,7 @@ class Font2FontAutoEncoder(object):
         source_iter = source_provider.get_iter(self.batch_size)
 
         tf.global_variables_initializer().run()
-        saver = tf.train.Saver()
+        saver = tf.train.Saver(var_list=self.retrieve_generator_vars())
         self.restore_model(saver, model_dir)
 
         def save_imgs(imgs, count):
