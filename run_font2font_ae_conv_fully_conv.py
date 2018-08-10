@@ -46,7 +46,7 @@ def infer_model():
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
 
-    with tf.Session(config) as sess:
+    with tf.Session(config=config) as sess:
         model = Font2FontAutoEncoder(args.experiment_dir, batch_size=args.batch_size, experiment_id=args.experiment_id,
                                      input_width=args.image_size, output_width=args.image_size,
                                      Loss_penalty=args.Loss_penalty, network_dim=args.network_dim)
