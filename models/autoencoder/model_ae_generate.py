@@ -451,13 +451,13 @@ class Font2FontAutoEncoder(object):
 
             # validation in each epoch used the train samples
             # self.validate_model(val_batch_iter, ei, counter)
-            self.validate_model(train_sample, ei, counter)
+            self.validate_model(val_batch_iter, ei, counter)
 
             # save checkpoint in each 50 epoch
             # if (ei + 1) % 50 == 0:
             # self.checkpoint(saver, counter)
 
         # save the last checkpoint
-        print("Checkpoint: last checkpoint step %d" % counter)
-        self.checkpoint(saver, counter)
+        # print("Checkpoint: last checkpoint step %d" % counter)
+        # self.checkpoint(saver, counter)
 
