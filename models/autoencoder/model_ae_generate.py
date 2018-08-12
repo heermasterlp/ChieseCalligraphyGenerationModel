@@ -5,10 +5,9 @@ import scipy.misc as misc
 import os
 import time
 from collections import namedtuple
-import pickle
 
 from models.autoencoder.ops import conv2d, deconv2d, lrelu, fc, batch_norm
-from models.autoencoder.dataset import TrainDataProvider, InjectDataProvider
+from utils.dataset import TrainDataProvider, InjectDataProvider
 from utils.utils import merge, save_concat_images, save_image, scale_back
 
 LossHandle = namedtuple("LossHandle", ["loss"])
@@ -175,12 +174,12 @@ class Font2FontAutoEncoder(object):
         :return:
         """
         real_data = tf.placeholder(tf.float32, [self.batch_size, self.input_width, self.input_width,
-                                                self.input_filters], name="real_A_image")
+                                                self.input_filters + self.output_filters], name="real_A_and_B_image")
         # target images
         real_B = real_data[:, :, :, :self.input_filters]
 
         # source images
-        real_A = real_data[:, :, :, :self.input_filters]
+        real_A = real_data[:, :, :, :self.input_filters: self.input_filters + self.output_filters]
 
         # fake B
         fake_B, fake_B_logits, code = self.network(real_A, keep_prob=keep_prob, is_training=is_training)

@@ -29,7 +29,7 @@ def load_charset(char_dir):
         return charset
 
 
-def char_dataset_generate(charset, trainset_num, valset_num, testset_num, shuffle=True):
+def char_dataset_generate(charset, trainset_num, valset_num, testset_num, shuffle=False):
     """
     Generate train, val and test charset based on different number.
     :param charset:
@@ -45,10 +45,10 @@ def char_dataset_generate(charset, trainset_num, valset_num, testset_num, shuffl
         print("train set, val set and test set should not be larger than the charset")
         return
     # shuffle
-    if shuffle:
-        np.random.shuffle(charset)
-        np.random.shuffle(charset)
-        np.random.shuffle(charset)
+    # if shuffle:
+    #     np.random.shuffle(charset)
+    #     np.random.shuffle(charset)
+    #     np.random.shuffle(charset)
 
     trainset = charset[:trainset_num]
     valset = charset[trainset_num: trainset_num + valset_num]
@@ -85,7 +85,7 @@ def pickle_dataset(dataset, dataset_dir, font, image_mode, canvas_size, x_offset
     if os.path.exists(os.path.join(dataset_dir, 'images')):
         dirs = os.listdir(os.path.join(dataset_dir, 'images'))
         for f in dirs:
-            if 'jpg' in f:
+            if 'png' in f:
                 os.remove(os.path.join(dataset_dir, 'images', f))
     else:
         os.makedirs(os.path.join(dataset_dir, 'images'))
@@ -144,8 +144,10 @@ if __name__ == '__main__':
 
     charset = load_charset(args.charset_dir)
     print("char set len: {}".format(len(charset)))
+    # print(charset)
 
-    char_dataset = char_dataset_generate(charset, args.trainset_num, args.valset_num, args.testset_num)
+    char_dataset = char_dataset_generate(charset, args.trainset_num, args.valset_num, args.testset_num,
+                                         shuffle=args.shuffle)
 
     if char_dataset:
         print("train set num: {}, val set num: {}, test set num: {}".format(len(char_dataset.char_trainset),
