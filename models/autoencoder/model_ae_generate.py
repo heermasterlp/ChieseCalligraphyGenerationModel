@@ -310,7 +310,7 @@ class Font2FontAutoEncoder(object):
                                                        })
         return fake_images, real_images, loss, code
 
-    def validate_model(self, images, epoch, step):
+    def validate_model(self, images, epoch, step, label="val"):
         """
         Validate this auto-encoder model.
         :param images:
@@ -319,7 +319,7 @@ class Font2FontAutoEncoder(object):
         :return:
         """
         fake_images, real_images, loss, code = self.generate_fake_samples(images)
-        print("Sample: loss: %.5f " % (loss))
+        print(" %s sample: loss: %.5f " % (label, loss))
 
         merged_fake_images = merge(scale_back(fake_images), [self.batch_size, 1])
         merged_real_images = merge(scale_back(real_images), [self.batch_size, 1])
@@ -330,7 +330,7 @@ class Font2FontAutoEncoder(object):
         if not os.path.exists(model_sample_dir):
             os.makedirs(model_sample_dir)
 
-        sample_img_path = os.path.join(model_sample_dir, "sample_%04d_%06d.png" % (epoch, step))
+        sample_img_path = os.path.join(model_sample_dir, "%s_sample_%04d_%06d.png" % (label, epoch, step))
         misc.imsave(sample_img_path, merged_pair)
 
     def infer(self, source_obj, model_dir, save_dir):
@@ -445,13 +445,14 @@ class Font2FontAutoEncoder(object):
                                                    })
                 passed_time = time.time() - start_time
 
-                log_format = "Epoch: [%2d], [%4d/%4d] time: %4.4f, loss: %.5f"
-                print(log_format % (ei, bid, total_batches, passed_time, loss))
+                # log_format = "Epoch: [%2d], [%4d/%4d] time: %4.4f, loss: %.5f"
+                # print(log_format % (ei, bid, total_batches, passed_time, loss))
                 summary_writer.add_summary(g_summary, counter)
 
             # validation in each epoch used the train samples
             # self.validate_model(val_batch_iter, ei, counter)
             self.validate_model(val_batch_iter, ei, counter)
+            self.validate_model(train_sample, ei, counter, label="train")
 
             # save checkpoint in each 50 epoch
             # if (ei + 1) % 50 == 0:
