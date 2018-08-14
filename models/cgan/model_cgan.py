@@ -197,10 +197,13 @@ class Font2FontCGAN(object):
         fake_D, fake_D_logits = self.discriminator(fake_AB, is_training=is_training, reuse=True)
 
         # L1 loss
-        l1_loss = self.L1_penalty * tf.reduce_mean(tf.abs(fake_B - real_B))
+        l1_loss = tf.reduce_mean(tf.abs(fake_B - real_B))
 
         # l2 loss
-        l2_loss = tf.reduce_mean(tf.square)
+        l2_loss = tf.nn.l2_loss(fake_B - real_B)
+
+        theta = 0.6
+        l_loss =  theta * l1_loss + (1 - theta) * l2_loss
 
         # total variation loss
         width = self.output_width
@@ -221,10 +224,10 @@ class Font2FontCGAN(object):
         d_loss = d_loss_real + d_loss_fake
 
         # G loss
-        g_loss = g_loss + tv_loss + l1_loss
+        g_loss = g_loss + tv_loss + l_loss
 
         # summaries
-        l1_loss_summary = tf.summary.scalar("l1_loss", l1_loss)
+        l1_loss_summary = tf.summary.scalar("l1_loss", l_loss)
         tv_loss_summary = tf.summary.scalar("tv_loss", tv_loss)
         g_loss_summary = tf.summary.scalar("g_loss", g_loss)
         d_loss_real_summary = tf.summary.scalar("d_loss_real", d_loss_real)
@@ -235,7 +238,7 @@ class Font2FontCGAN(object):
 
         # expose useful nodes in the graph as handles globally
         input_handle = InputHandle(real_data=real_data)
-        loss_handle = LossHandle(d_loss=d_loss, g_loss=g_loss, l1_loss=l1_loss, tv_loss=tv_loss,
+        loss_handle = LossHandle(d_loss=d_loss, g_loss=g_loss, l1_loss=l_loss, tv_loss=tv_loss,
                                  d_loss_real=d_loss_real, d_loss_fake=d_loss_fake)
 
         eval_handle = EvalHandle(encoder=encoded_real_A, generator=fake_B, target=real_B, source=real_A)
