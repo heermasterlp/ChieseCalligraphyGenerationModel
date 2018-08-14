@@ -199,6 +199,9 @@ class Font2FontCGAN(object):
         # L1 loss
         l1_loss = self.L1_penalty * tf.reduce_mean(tf.abs(fake_B - real_B))
 
+        # l2 loss
+        l2_loss = tf.reduce_mean(tf.square)
+
         # total variation loss
         width = self.output_width
         tv_loss = (tf.nn.l2_loss(fake_B[:, 1:, :, :] - fake_B[:, :width - 1, :, :]) / width
@@ -522,9 +525,9 @@ class Font2FontCGAN(object):
             self.validate_model(val_batch_iter, ei, counter)
 
             # save checkpoint in each 50 epoch
-            if (ei + 1) % 50 == 0:
-                self.checkpoint(saver, counter)
+            # if (ei + 1) % 50 == 0:
+            #     self.checkpoint(saver, counter)
 
         # save the last checkpoint
-        print("Checkpoint: last checkpoint step %d" % counter)
-        self.checkpoint(saver, counter)
+        # print("Checkpoint: last checkpoint step %d" % counter)
+        # self.checkpoint(saver, counter)
