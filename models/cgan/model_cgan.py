@@ -200,7 +200,7 @@ class Font2FontCGAN(object):
         l1_loss = tf.reduce_mean(tf.abs(fake_B - real_B))
 
         # l2 loss
-        l2_loss = tf.reduce_mean(tf.reduce_sum(tf.square(real_B - fake_B)))
+        l2_loss = tf.reduce_mean(tf.square(real_B - fake_B))
 
         theta = 0.6
         l_loss =  theta * l1_loss + (1 - theta) * l2_loss
