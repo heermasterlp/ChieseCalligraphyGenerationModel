@@ -30,13 +30,14 @@ def maxpool2d(name, x, k=2):
 def norm(name, l_input, lsize=4):
     return tf.nn.lrn(l_input, lsize, bias=1.0, alpha=0.001/0.9, beta=0.75, name=name)
 
+
 weights = {
     'wc1': tf.Variable(tf.random_normal([11, 11, 1, 96])),
     'wc2': tf.Variable(tf.random_normal([5, 5, 96, 256])),
     'wc3': tf.Variable(tf.random_normal([3, 3, 256, 384])),
     'wc4': tf.Variable(tf.random_normal([3, 3, 384, 384])),
     'wc5': tf.Variable(tf.random_normal([3, 3, 384, 256])),
-    'wd1': tf.Variable(tf.random_normal([4*4*256, 4096])),
+    'wd1': tf.Variable(tf.random_normal([2*2*256, 4096])),
     'wd2': tf.Variable(tf.random_normal([4096, 4096])),
     'out': tf.Variable(tf.random_normal([4096, 10]))
 }
@@ -85,6 +86,7 @@ def alex_net(x, weights, biases, dropout):
     fc2 = tf.nn.dropout(fc2, dropout)
 
     out = tf.add(tf.matmul(fc2, weights['out']), biases['out'])
+
     return out
 
 
@@ -106,24 +108,20 @@ with tf.Session() as sess:
 
     while step * batch_size < train_iter:
         batch_x, batch_y = mnist.train.next_batch(batch_size)
+        # print(batch_x.shape)
         sess.run(optimizer, feed_dict={x: batch_x, y: batch_y, keep_prob: dropout})
 
         if step % display_step == 0:
             loss, acc = sess.run([cost, accuracy], feed_dict={x: batch_x,
                                                               y: batch_y,
                                                               keep_prob: 1.})
+
             print("Iter " + str(step*batch_size) + "Loss = " + "{:.6f}".format(loss) + "Accuracy = {:.6f}".format(acc))
 
         step += 1
     print("Training finished!")
 
-
     print("Test accuracy:", \
           sess.run(accuracy, feed_dict={x: mnist.test.images[:256],
                                         y: mnist.test.labels[:256],
                                         keep_prob: 1.},))
-
-
-
-
-
