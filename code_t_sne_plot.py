@@ -26,15 +26,31 @@ songti_code = np.load(dat12_path)
 # ax.scatter(qigong_code_3d[:10, 0], qigong_code_3d[:10, 1], qigong_code_3d[:10, 2], c='r')
 # ax.scatter(songti_code_3d[:10, 0], songti_code_3d[:10, 1], songti_code_3d[:10, 2], c='b')
 
-tsne = TSNE(n_components=2, random_state=0)
+# tsne = TSNE(n_components=2, random_state=0)
+#
+# kaiti_code_2d = tsne.fit_transform(kaiti_code)
+# qigong_code_2d = tsne.fit_transform(qigong_code)
+# songti_code_2d = tsne.fit_transform(songti_code)
+#
+# plt.scatter(songti_code_2d[:, 0], songti_code_2d[:, 1], c="b")
+# plt.scatter(qigong_code_2d[:, 0], qigong_code_2d[:, 1], c="r")
+# plt.scatter(kaiti_code_2d[:, 0], kaiti_code_2d[:, 1], c="g")
+# plt.show()
 
-kaiti_code_2d = tsne.fit_transform(kaiti_code)
-qigong_code_2d = tsne.fit_transform(qigong_code)
-songti_code_2d = tsne.fit_transform(songti_code)
+fig = plt.figure()
+ax = Axes3D(fig)
 
-plt.scatter(songti_code_2d[:, 0], songti_code_2d[:, 1], c="b")
-plt.scatter(qigong_code_2d[:, 0], qigong_code_2d[:, 1], c="r")
-plt.scatter(kaiti_code_2d[:, 0], kaiti_code_2d[:, 1], c="g")
+tsne = TSNE(n_components=3, random_state=0)
+
+kaiti_code_3d = tsne.fit_transform(kaiti_code)
+qigong_code_3d = tsne.fit_transform(qigong_code)
+songti_code_3d = tsne.fit_transform(songti_code)
+
+
+ax.scatter(songti_code_3d[:, 0], songti_code_3d[:, 1], songti_code_3d[:, 2], c='r')
+ax.scatter(qigong_code_3d[:, 0], qigong_code_3d[:, 1], qigong_code_3d[:, 2], c='b')
+ax.scatter(kaiti_code_3d[:, 0], kaiti_code_3d[:, 1], kaiti_code_3d[:, 2], c='g')
+
 plt.show()
 
 

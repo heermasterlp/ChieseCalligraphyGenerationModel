@@ -203,7 +203,7 @@ class Font2FontCGAN(object):
         l2_loss = tf.reduce_mean(tf.square(real_B - fake_B))
 
         theta = 0.6
-        l_loss =  theta * l1_loss + (1 - theta) * l2_loss
+        l_loss = theta * l1_loss + (1 - theta) * l2_loss
 
         # total variation loss
         width = self.output_width
@@ -534,3 +534,6 @@ class Font2FontCGAN(object):
         # save the last checkpoint
         # print("Checkpoint: last checkpoint step %d" % counter)
         # self.checkpoint(saver, counter)
+
+        summary_writer.flush()
+        summary_writer.close()
