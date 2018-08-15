@@ -38,18 +38,18 @@ weights = {
     'wc5': tf.Variable(tf.random_normal([3, 3, 384, 256])),
     'wd1': tf.Variable(tf.random_normal([4*4*256, 4096])),
     'wd2': tf.Variable(tf.random_normal([4096, 4906])),
-    'out': tf.Variable(tf.random_normal[4906, 10])
+    'out': tf.Variable(tf.random_normal([4906, 10]))
 }
 
 biases = {
-    'bc1': tf.Variable(tf.random_normal[96]),
-    'bc2': tf.Variable(tf.random_normal[256]),
-    'bc3': tf.Variable(tf.random_normal[384]),
-    'bc4': tf.Variable(tf.random_normal[384]),
-    'bc5': tf.Variable(tf.random_normal[256]),
+    'bc1': tf.Variable(tf.random_normal([96])),
+    'bc2': tf.Variable(tf.random_normal([256])),
+    'bc3': tf.Variable(tf.random_normal([384])),
+    'bc4': tf.Variable(tf.random_normal([384])),
+    'bc5': tf.Variable(tf.random_normal([256])),
     'bd1': tf.Variable(tf.random_normal([4096])),
-    'bd2': tf.Variable(tf.random_normal[4096]),
-    'out': tf.Variable(tf.random_normal[n_classes])
+    'bd2': tf.Variable(tf.random_normal([4096])),
+    'out': tf.Variable(tf.random_normal([n_classes]))
 }
 
 
