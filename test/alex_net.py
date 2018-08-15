@@ -18,7 +18,7 @@ keep_prob = tf.placeholder(tf.float32)
 
 
 def conv2d(name, x, W, b, strides=1):
-    x = tf.nn.conv2d(x, W, strides[1, strides, strides, 1], padding="SAME")
+    x = tf.nn.conv2d(x, W, strides=[1, strides, strides, 1], padding="SAME")
     x = tf.nn.bias_add(x, b)
     return tf.nn.relu(x, name=name)
 
