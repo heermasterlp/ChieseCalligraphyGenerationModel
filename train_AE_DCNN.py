@@ -3,8 +3,7 @@ import argparse
 import tensorflow as tf
 from datetime import datetime
 
-from AutoEncoder.models.AE_DCNN import AutoEncoderDCNN
-
+from models.autoencoder.AE_DCNN import AutoEncoderDCNN
 
 def train_model():
     """
