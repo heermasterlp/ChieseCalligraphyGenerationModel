@@ -10,7 +10,7 @@ from utils.ops import conv2d, deconv2d, lrelu, fc, batch_norm
 from models.autoencoder.dataset import TrainDataProvider, InjectDataProvider
 from utils.utils import merge, save_concat_images, save_image, scale_back
 
-LossHandle = namedtuple("LossHandle", ["loss"])
+LossHandle = namedtuple("LossHandle", ["loss", "l1_loss", "l2_loss"])
 InputHandle = namedtuple("InputHandle", ["real_data"])
 EvalHandle = namedtuple("EvalHandle", ["network", "target", "source"])
 SummaryHandle = namedtuple("SummaryHandle", ["g_merged"])
@@ -72,15 +72,15 @@ class AutoEncoderDCNN(object):
                 encode_layers["e%d" % layer] = enc
                 return enc
 
-            e1 = conv2d(images, self.network_dim, scope="g_e1_env")
+            e1 = conv2d(images, self.network_dim, scope="g_e1_env")   # 128 x 128
             encode_layers["e1"] = e1
-            e2 = encode_layer(e1, self.network_dim * 2, 2)
-            e3 = encode_layer(e2, self.network_dim * 4, 3)
-            e4 = encode_layer(e3, self.network_dim * 8, 4)
-            e5 = encode_layer(e4, self.network_dim * 8, 5)
-            e6 = encode_layer(e5, self.network_dim * 8, 6)
-            e7 = encode_layer(e6, self.network_dim * 8, 7)
-            e8 = encode_layer(e7, self.network_dim * 8, 8)
+            e2 = encode_layer(e1, self.network_dim * 2, 2)  # 64 x 64
+            e3 = encode_layer(e2, self.network_dim * 4, 3)  # 32 x 32
+            e4 = encode_layer(e3, self.network_dim * 8, 4)  # 16 x 16
+            e5 = encode_layer(e4, self.network_dim * 8, 5)  # 8 x 8
+            e6 = encode_layer(e5, self.network_dim * 8, 6)  # 4 x 4
+            e7 = encode_layer(e6, self.network_dim * 8, 7)  # 2 x 2
+            e8 = encode_layer(e7, self.network_dim * 8, 8)  # 1 x 1
 
             return e8, encode_layers
 
@@ -168,7 +168,8 @@ class AutoEncoderDCNN(object):
 
         # loss
         alpha = 0.6
-        loss = alpha * l2_loss + (1 - alpha) * l1_loss
+        # loss = alpha * l2_loss + (1 - alpha) * l1_loss
+        loss = ce_loss
 
         # summaries
         loss_summary = tf.summary.scalar("loss", loss)
@@ -176,7 +177,7 @@ class AutoEncoderDCNN(object):
 
         # expose useful nodes in the graph as handles globally
         input_handle = InputHandle(real_data=real_data)
-        loss_handle = LossHandle(loss=loss)
+        loss_handle = LossHandle(loss=loss, l1_loss=l1_loss, l2_loss=l2_loss)
         eval_handle = EvalHandle(network=fake_B, target=real_B, source=real_A)
         summary_handle = SummaryHandle(g_merged=g_merged_summary)
 
@@ -413,20 +414,20 @@ class AutoEncoderDCNN(object):
                 counter += 1
                 batch_images = batch
 
-                _, loss, g_summary = self.sess.run([g_optimizer, loss_handle.loss, summary_handle.g_merged],
+                _, loss, l1_loss, l2_loss, g_summary = self.sess.run([g_optimizer, loss_handle.loss, loss_handle.l1_loss, loss_handle.l2_loss, summary_handle.g_merged],
                                                    feed_dict={
                                                        real_data: batch_images,
                                                        learning_rate: current_lr
                                                    })
                 passed_time = time.time() - start_time
 
-                log_format = "Epoch: [%2d], [%4d/%4d] time: %4.4f, loss: %.5f"
-                print(log_format % (ei, bid, total_batches, passed_time, loss))
+                log_format = "Epoch: [%2d], [%4d/%4d] time: %4.4f, loss: %.5f, l1_loss: %.5f, l2_loss: %.5f"
+                print(log_format % (ei, bid, total_batches, passed_time, loss, l1_loss, l2_loss))
                 summary_writer.add_summary(g_summary, counter)
 
             # validation in each epoch used the train samples
-            # self.validate_model(val_batch_iter, ei, counter)
-            self.validate_model(train_sample, ei, counter)
+            self.validate_model(val_batch_iter, ei, counter)
+            # self.validate_model(train_sample, ei, counter)
 
             # save checkpoint in each 50 epoch
             # if (ei + 1) % 50 == 0:
